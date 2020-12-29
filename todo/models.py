@@ -38,6 +38,9 @@ class Task(models.Model):
         if self.is_overdue():
             self.overdue = True
             self.save()
+        else:
+            self.overdue = False
+            self.save()
 
 
 

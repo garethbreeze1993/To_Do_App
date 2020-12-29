@@ -20,5 +20,11 @@ class TaskSerializer(serializers.ModelSerializer):
     #     Task.objects.create(**validated_data)
     #     return Task
 
-    # def update(self, instance, validated_data):
-    #     pass
+    def update(self, instance, validated_data):
+        fields = ['title', 'description', 'completed', 'choices', 'deadline']
+        for k, v in validated_data.items():
+            if k in fields:
+                setattr(instance, k, v)
+        instance.check_overdue()
+        instance.save()
+        return instance
