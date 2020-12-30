@@ -24,6 +24,8 @@ media
 .idea/**/gradle.xml
 .idea/**/libraries
 *.iws /out/
+.nites_22.kate-swp
+
 
 # Python #
 *.py[cod]
