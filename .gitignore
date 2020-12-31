@@ -36,3 +36,45 @@ venv_todo/
 nites_22
 
 plan.odt
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+frontend_todo/node_modules/
+frontend_todo/.pnp
+frontend_todo/.pnp.js
+frontend_todo/.eslintcache
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# testing
+frontend_todo/coverage
+
+# production
+frontend_todo/build
+
+# misc
+frontend_todo/.DS_Store
+frontend_todo/.env.local
+frontend_todo/.env.development.local
+frontend_todo/.env.test.local
+frontend_todo/.env.production.local
+
+frontend_todo/npm-debug.log*
+frontend_todo/yarn-debug.log*
+frontend_todo/yarn-error.log*
