@@ -25,8 +25,6 @@ SECRET_KEY = '%k810oc8@t%7o-be%9r@$&lw59g)^7tsir__ef%y!)k+4$f!-z'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -131,9 +129,10 @@ REST_FRAMEWORK = {
 }
 
 # we whitelist localhost:3000 because that's where frontend will be served
-CORS_ORIGIN_WHITELIST = (
-     'http://localhost:3000',
- )
+CORS_ORIGIN_WHITELIST = [
+     'http://localhost:3000'
+ ]
 
+ALLOWED_HOSTS = ['198.211.99.20', 'localhost', '127.0.0.1', 'http://localhost:3000']
 
 # https://www.digitalocean.com/community/tutorials/build-a-to-do-application-using-django-and-react

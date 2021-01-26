@@ -4,6 +4,7 @@ import LoginForm from './components/Login';
 import SignupForm from './components/Signup';
 import './App.css';
 import {NavbarBrand} from "reactstrap";
+import axios from "axios";
 
 class App extends Component {
   constructor(props) {
@@ -15,24 +16,7 @@ class App extends Component {
     };
   }
 
-  componentDidMount() {
-    if (this.state.logged_in) {
-        console.log('does this')
-      fetch('http://localhost:8000/api/tasks/', {
-          method: 'GET',
-        headers: {
-              'Content-Type': 'text/plain',
-          'Bearer': `${localStorage.getItem('token')}`
-        }
-      })
-        .then(res => res.json())
-        .then(json => {
-            console.log('GETS DATA')
-            console.log(json)
-          this.setState({ username: '' });
-        });
-    }
-  }
+
 
   // https://stackoverflow.com/questions/1256593/why-am-i-getting-an-options-request-instead-of-a-get-request
 
@@ -92,6 +76,24 @@ class App extends Component {
     });
   };
 
+    loadTasks = () => {
+    if (this.state.logged_in) {
+      const access_token = 'Bearer ' + localStorage.getItem('token')
+      fetch("http://localhost:8000/api/tasks/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": access_token,
+        }
+      })
+        .then(res => res.json())
+        .then(json => {
+          console.log(json);
+        })
+        .catch(error => console.error(error));
+    }
+  };
+
   render() {
     let form;
     switch (this.state.displayed_form) {
@@ -118,6 +120,10 @@ class App extends Component {
             ? `Hello, ${this.state.username}`
             : 'Please Log In'}
         </h3>
+        {this.state.logged_in
+            ? <button onClick={this.loadTasks}>Load Tasks</button>
+            : <p>Please log in to see your tasks</p>}
+
       </div>
     );
   }
