@@ -12,7 +12,8 @@ class App extends Component {
     this.state = {
       displayed_form: '',
       logged_in: localStorage.getItem('token') ? true : false,
-      username: ''
+      username: '',
+      data: [],
     };
   }
 
@@ -32,6 +33,7 @@ class App extends Component {
       .then(res => res.json())
       .then(json => {
         localStorage.setItem('token', json.access);
+        localStorage.setItem('refresh', json.refresh)
         this.setState({
           logged_in: true,
           displayed_form: '',
@@ -39,11 +41,6 @@ class App extends Component {
         });
       });
   };
-
-//   {
-//     "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTYxMTUxMjg4MSwianRpIjoiNzk4NzRmZjY3ODdhNDYzZjllMmNjY2JlMzM2YWFkYjIiLCJ1c2VyX2lkIjoxfQ.Wz7R8D_0yTQ6SjXmLHfK7sAMHLGKtIA2wUYJI0pEZBE",
-//     "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjExNDI2NzgxLCJqdGkiOiIwNTU5YzliODk2OTQ0ZWQzOWE2NTk2MTIyZTUxMjk1ZSIsInVzZXJfaWQiOjF9.04n136HPjKhRwi49qM2AvwWGc1IZkGDLF-nrCTiwkd0"
-// }
 
   handle_signup = (e, data) => {
     e.preventDefault();
@@ -76,6 +73,26 @@ class App extends Component {
     });
   };
 
+  getNewAccessToken = (func_called) => {
+    const refresh_token = {'refresh': localStorage.getItem('refresh')}
+    fetch('http://localhost:8000/api/token/refresh', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(refresh_token)
+}).then(res => res.json())
+      .then(json => {
+        localStorage.setItem('token', json.access)
+        console.log('THOIS BIT HITS THIS AND KIND OF WORKS')
+        // Find way to get function and call it again with new credentials
+        this.loadTasks()
+      }).catch((err) => {
+      console.log('htis error on access token')
+      console.error(err)
+    })
+  }
+
     loadTasks = () => {
     if (this.state.logged_in) {
       const access_token = 'Bearer ' + localStorage.getItem('token')
@@ -88,9 +105,15 @@ class App extends Component {
       })
         .then(res => res.json())
         .then(json => {
-          console.log(json);
+          // console.log(json);
+          this.setState({data: json})
         })
-        .catch(error => console.error(error));
+        .catch(error => {
+          console.error(error)
+          if (error.code === "token_not_valid" && error.message[0].message === "Token is invalid or expired"){
+            this.getNewAccessToken('loadTasks')
+          }
+        });
     }
   };
 
@@ -123,6 +146,21 @@ class App extends Component {
         {this.state.logged_in
             ? <button onClick={this.loadTasks}>Load Tasks</button>
             : <p>Please log in to see your tasks</p>}
+
+        <h2>List of Tasks to do</h2>
+        <section>
+        { this.state.data
+        ? this.state.data.map((task) => {
+          const {id, title, description, completed, deadline} = task
+          return <div key={id}>
+            <p>{title}</p>
+            <p>{description}</p>
+            {completed ? <p>Completed true</p> : <p>Completed false</p>}
+            <p>{deadline}</p>
+          </div>
+        }):
+        <p>No tasks have been created</p>}
+        </section>
 
       </div>
     );
