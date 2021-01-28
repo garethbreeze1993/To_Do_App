@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import LoginForm from './components/Login';
 import SignupForm from './components/Signup';
 import './App.css';
+import useJWTCheckExpire from "./hooks/useJWTExpireCheck";
 import {NavbarBrand} from "reactstrap";
 import axios from "axios";
 
@@ -73,9 +74,10 @@ class App extends Component {
     });
   };
 
-  getNewAccessToken = (func_called) => {
+  getNewAccessToken = () => {
     const refresh_token = {'refresh': localStorage.getItem('refresh')}
-    fetch('http://localhost:8000/api/token/refresh', {
+    console.log('get new access token')
+    fetch('http://localhost:8000/api/token/refresh/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -84,9 +86,6 @@ class App extends Component {
 }).then(res => res.json())
       .then(json => {
         localStorage.setItem('token', json.access)
-        console.log('THOIS BIT HITS THIS AND KIND OF WORKS')
-        // Find way to get function and call it again with new credentials
-        this.loadTasks()
       }).catch((err) => {
       console.log('htis error on access token')
       console.error(err)
@@ -95,24 +94,26 @@ class App extends Component {
 
     loadTasks = () => {
     if (this.state.logged_in) {
-      const access_token = 'Bearer ' + localStorage.getItem('token')
-      fetch("http://localhost:8000/api/tasks/", {
+      const access_token = 'Bearer ' + localStorage.getItem('token') + 'hello'
+        if(useJWTCheckExpire(access_token)){
+            this.getNewAccessToken()
+        }
+
+        fetch("http://localhost:8000/api/tasks/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": access_token,
         }
       })
-        .then(res => res.json())
+        .then(res => {
+          res.json()})
         .then(json => {
+          console.log(json)
           // console.log(json);
-          this.setState({data: json})
-        })
+          this.setState({data: json})})
         .catch(error => {
-          console.error(error)
-          if (error.code === "token_not_valid" && error.message[0].message === "Token is invalid or expired"){
-            this.getNewAccessToken('loadTasks')
-          }
+          console.error(error);
         });
     }
   };
@@ -149,7 +150,7 @@ class App extends Component {
 
         <h2>List of Tasks to do</h2>
         <section>
-        { this.state.data
+        { this.state.data.length
         ? this.state.data.map((task) => {
           const {id, title, description, completed, deadline} = task
           return <div key={id}>
