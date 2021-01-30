@@ -3,7 +3,7 @@ import Navbar from './components/Navbar';
 import LoginForm from './components/Login';
 import SignupForm from './components/Signup';
 import './App.css';
-import useJWTCheckExpire from "./hooks/useJWTExpireCheck";
+import JWTCheckExpire from "./hooks/useJWTExpireCheck";
 import {NavbarBrand} from "reactstrap";
 import axios from "axios";
 
@@ -92,29 +92,22 @@ class App extends Component {
     })
   }
 
-    loadTasks = () => {
+      loadTasks = () => {
     if (this.state.logged_in) {
-      const access_token = 'Bearer ' + localStorage.getItem('token') + 'hello'
-        if(useJWTCheckExpire(access_token)){
-            this.getNewAccessToken()
-        }
-
-        fetch("http://localhost:8000/api/tasks/", {
+      const access_token = 'Bearer ' + localStorage.getItem('token')
+      fetch("http://localhost:8000/api/tasks/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": access_token,
         }
       })
-        .then(res => {
-          res.json()})
+        .then(res => res.json())
         .then(json => {
-          console.log(json)
-          // console.log(json);
-          this.setState({data: json})})
-        .catch(error => {
-          console.error(error);
-        });
+          console.log(json);
+          this.setState({data: json})
+        })
+        .catch(error => console.error(error));
     }
   };
 
