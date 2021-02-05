@@ -1,28 +1,29 @@
-import React, { Component } from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import LoginForm from './components/Login';
 import SignupForm from './components/Signup';
 import './App.css';
-import JWTCheckExpire from "./hooks/useJWTExpireCheck";
+import useJWTCheckExpire from "./hooks/useJWTExpireCheck";
 import {NavbarBrand} from "reactstrap";
 import axios from "axios";
+import {useJwt} from "react-jwt";
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      displayed_form: '',
-      logged_in: localStorage.getItem('token') ? true : false,
-      username: '',
-      data: [],
-    };
-  }
+const App = () => {
+
+    const [displayed_form, setDisplayed_Form] = useState('')
+    const [logged_in, setLogged_In] = useState(localStorage.getItem('token') ? true : false)
+    const[username, setUserName] = useState('')
+    const [data, setData] = useState([])
+    let [form, setForm] = useState(null);
+
+    const expiredToken= useJwt(localStorage.getItem('token'))
+
 
 
 
   // https://stackoverflow.com/questions/1256593/why-am-i-getting-an-options-request-instead-of-a-get-request
 
-  handle_login = (e, data) => {
+  const handle_login = (e, data) => {
     e.preventDefault();
     fetch('http://localhost:8000/api/token/', {
       method: 'POST',
@@ -35,15 +36,18 @@ class App extends Component {
       .then(json => {
         localStorage.setItem('token', json.access);
         localStorage.setItem('refresh', json.refresh)
-        this.setState({
-          logged_in: true,
-          displayed_form: '',
-          username: ''
-        });
+        // this.setState({
+        //   logged_in: true,
+        //   displayed_form: '',
+        //   username: ''
+        // });
+          setLogged_In(true);
+            setDisplayed_Form('');
+            setUserName('');
       });
   };
 
-  handle_signup = (e, data) => {
+  const handle_signup = (e, data) => {
     e.preventDefault();
     fetch('http://localhost:8000/api/register', {
       method: 'POST',
@@ -55,26 +59,23 @@ class App extends Component {
       .then(res => res.json())
       .then(json => {
         localStorage.setItem('token', json.token);
-        this.setState({
-          logged_in: true,
-          displayed_form: '',
-          username: json.username
-        });
-      });
+          setLogged_In(true);
+            setDisplayed_Form('');
+            setUserName('');
+     });
   };
 
-  handle_logout = () => {
+  const handle_logout = () => {
     localStorage.removeItem('token');
-    this.setState({ logged_in: false, username: '' });
+    setLogged_In(false);
+    setUserName('');
   };
 
-  display_form = form => {
-    this.setState({
-      displayed_form: form
-    });
+  const display_form = form => {
+    setDisplayed_Form(form);
   };
 
-  getNewAccessToken = () => {
+  const getNewAccessToken = () => {
     const refresh_token = {'refresh': localStorage.getItem('refresh')}
     console.log('get new access token')
     fetch('http://localhost:8000/api/token/refresh/', {
@@ -92,9 +93,17 @@ class App extends Component {
     })
   }
 
-      loadTasks = () => {
-    if (this.state.logged_in) {
+  const Tasks = () => {
+    if (logged_in) {
       const access_token = 'Bearer ' + localStorage.getItem('token')
+
+        if(expiredToken){
+            console.log('expired')
+            getNewAccessToken();
+        }else{
+            console.log('not expired hoorayt')
+        }
+
       fetch("http://localhost:8000/api/tasks/", {
         method: "GET",
         headers: {
@@ -105,20 +114,20 @@ class App extends Component {
         .then(res => res.json())
         .then(json => {
           console.log(json);
-          this.setState({data: json})
+            setData(json)
         })
         .catch(error => console.error(error));
     }
   };
 
-  render() {
-    let form;
-    switch (this.state.displayed_form) {
+        console.log('ksksks');
+        console.log(displayed_form);
+    switch (displayed_form) {
       case 'login':
-        form = <LoginForm handle_login={this.handle_login} />;
+       form = <LoginForm handle_login={handle_login} />
         break;
       case 'signup':
-        form = <SignupForm handle_signup={this.handle_signup} />;
+        form = <SignupForm handle_signup={handle_signup} />;
         break;
       default:
         form = null;
@@ -127,24 +136,25 @@ class App extends Component {
     return (
       <div className="App">
         <Navbar
-          logged_in={this.state.logged_in}
-          display_form={this.display_form}
-          handle_logout={this.handle_logout}
+          logged_in={logged_in}
+          display_form={display_form}
+          handle_logout={handle_logout}
         />
+
         {form}
         <h3>
-          {this.state.logged_in
-            ? `Hello, ${this.state.username}`
+          {logged_in
+            ? `Hello, ${username}`
             : 'Please Log In'}
         </h3>
-        {this.state.logged_in
-            ? <button onClick={this.loadTasks}>Load Tasks</button>
+        {logged_in
+            ? <button onClick={Tasks}>Load Tasks</button>
             : <p>Please log in to see your tasks</p>}
 
         <h2>List of Tasks to do</h2>
         <section>
-        { this.state.data.length
-        ? this.state.data.map((task) => {
+        { data.length
+        ? data.map((task) => {
           const {id, title, description, completed, deadline} = task
           return <div key={id}>
             <p>{title}</p>
@@ -158,7 +168,7 @@ class App extends Component {
 
       </div>
     );
-  }
+
 }
 
 export default App;
