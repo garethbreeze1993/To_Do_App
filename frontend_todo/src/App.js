@@ -1,11 +1,11 @@
-import React, { Component, useState, useEffect } from 'react';
+import React, {useState} from 'react';
 import Navbar from './components/Navbar';
 import LoginForm from './components/Login';
 import SignupForm from './components/Signup';
 import './App.css';
-import useJWTCheckExpire from "./hooks/useJWTExpireCheck";
-import {NavbarBrand} from "reactstrap";
-import axios from "axios";
+// import useJWTCheckExpire from "./hooks/useJWTExpireCheck";
+// import {NavbarBrand} from "reactstrap";
+// import axios from "axios";
 import {useJwt} from "react-jwt";
 
 const App = () => {
@@ -16,10 +16,21 @@ const App = () => {
     const [data, setData] = useState([])
     let [form, setForm] = useState(null);
 
-    const expiredToken= useJwt(localStorage.getItem('token'))
+    const { decodedToken, isExpired } = useJwt(localStorage.getItem('token'))
+    // console.log('render')
+    // console.log(decodedToken)
+    // console.log(isExpired)
 
 
-
+function sleep(milliseconds) {
+        console.log('sleepy sleepy')
+  const start = new Date().getTime();
+  for (let i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
+}
 
   // https://stackoverflow.com/questions/1256593/why-am-i-getting-an-options-request-instead-of-a-get-request
 
@@ -86,7 +97,9 @@ const App = () => {
       body: JSON.stringify(refresh_token)
 }).then(res => res.json())
       .then(json => {
+          localStorage.removeItem('token');
         localStorage.setItem('token', json.access)
+          console.log('finish getting new access token')
       }).catch((err) => {
       console.log('htis error on access token')
       console.error(err)
@@ -95,15 +108,29 @@ const App = () => {
 
   const Tasks = () => {
     if (logged_in) {
-      const access_token = 'Bearer ' + localStorage.getItem('token')
+        const dateNow = new Date();
+        const time = dateNow.getTime()
+        console.log(time)
+        const exp = decodedToken.exp
+        console.log(exp * 1000)
+        let usesleep = false
 
-        if(expiredToken){
+        if(exp * 1000 < time){
             console.log('expired')
+            usesleep = true;
             getNewAccessToken();
         }else{
             console.log('not expired hoorayt')
         }
 
+        const access_token = 'Bearer ' + localStorage.getItem('token')
+
+
+        console.log('getting tasks')
+        if(usesleep === true){
+            sleep(5000)
+            console.log('aqake')
+        }
       fetch("http://localhost:8000/api/tasks/", {
         method: "GET",
         headers: {
@@ -119,9 +146,8 @@ const App = () => {
         .catch(error => console.error(error));
     }
   };
-
-        console.log('ksksks');
-        console.log(displayed_form);
+        // console.log('ksksks');
+        // console.log(displayed_form);
     switch (displayed_form) {
       case 'login':
        form = <LoginForm handle_login={handle_login} />
