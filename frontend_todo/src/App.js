@@ -86,10 +86,40 @@ function sleep(milliseconds) {
     setDisplayed_Form(form);
   };
 
-  const getNewAccessToken = () => {
-    const refresh_token = {'refresh': localStorage.getItem('refresh')}
+//   const getNewAccessToken = () => {
+//     const refresh_token = {'refresh': localStorage.getItem('refresh')}
+//     console.log('get new access token')
+//     fetch('http://localhost:8000/api/token/refresh/', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json'
+//       },
+//       body: JSON.stringify(refresh_token)
+// }).then(res => res.json())
+//       .then(json => {
+//           localStorage.removeItem('token');
+//         localStorage.setItem('token', json.access)
+//           console.log('finish getting new access token')
+//       }).catch((err) => {
+//       console.log('htis error on access token')
+//       console.error(err)
+//     })
+//   }
+
+  const Tasks = async () => {
+    if (logged_in) {
+        const dateNow = new Date();
+        const time = dateNow.getTime()
+        console.log(time)
+        const exp = decodedToken.exp
+        console.log(exp * 1000)
+        // let access_token_fine = false
+
+        if(exp * 1000 < time){
+            console.log('expired')
+            const refresh_token = {'refresh': localStorage.getItem('refresh')}
     console.log('get new access token')
-    fetch('http://localhost:8000/api/token/refresh/', {
+     await fetch('http://localhost:8000/api/token/refresh/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -103,34 +133,14 @@ function sleep(milliseconds) {
       }).catch((err) => {
       console.log('htis error on access token')
       console.error(err)
-    })
-  }
-
-  const Tasks = () => {
-    if (logged_in) {
-        const dateNow = new Date();
-        const time = dateNow.getTime()
-        console.log(time)
-        const exp = decodedToken.exp
-        console.log(exp * 1000)
-        let usesleep = false
-
-        if(exp * 1000 < time){
-            console.log('expired')
-            usesleep = true;
-            getNewAccessToken();
-        }else{
+    })}
+    else{
             console.log('not expired hoorayt')
         }
 
-        const access_token = 'Bearer ' + localStorage.getItem('token')
+    const access_token = 'Bearer ' + localStorage.getItem('token')
 
 
-        console.log('getting tasks')
-        if(usesleep === true){
-            sleep(5000)
-            console.log('aqake')
-        }
       fetch("http://localhost:8000/api/tasks/", {
         method: "GET",
         headers: {
