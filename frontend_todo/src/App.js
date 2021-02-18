@@ -21,17 +21,6 @@ const App = () => {
     // console.log(decodedToken)
     // console.log(isExpired)
 
-
-function sleep(milliseconds) {
-        console.log('sleepy sleepy')
-  const start = new Date().getTime();
-  for (let i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      break;
-    }
-  }
-}
-
   // https://stackoverflow.com/questions/1256593/why-am-i-getting-an-options-request-instead-of-a-get-request
 
   const handle_login = (e, data) => {
@@ -86,46 +75,16 @@ function sleep(milliseconds) {
     setDisplayed_Form(form);
   };
 
-//   const getNewAccessToken = () => {
-//     const refresh_token = {'refresh': localStorage.getItem('refresh')}
-//     console.log('get new access token')
-//     fetch('http://localhost:8000/api/token/refresh/', {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json'
-//       },
-//       body: JSON.stringify(refresh_token)
-// }).then(res => res.json())
-//       .then(json => {
-//           localStorage.removeItem('token');
-//         localStorage.setItem('token', json.access)
-//           console.log('finish getting new access token')
-//       }).catch((err) => {
-//       console.log('htis error on access token')
-//       console.error(err)
-//     })
-//   }
-
-  const Tasks = async () => {
-    if (logged_in) {
-        const dateNow = new Date();
-        const time = dateNow.getTime()
-        console.log(time)
-        const exp = decodedToken.exp
-        console.log(exp * 1000)
-        // let access_token_fine = false
-
-        if(exp * 1000 < time){
-            console.log('expired')
-            const refresh_token = {'refresh': localStorage.getItem('refresh')}
+  const getNewAccessToken = async () => {
+    const refresh_token = {'refresh': localStorage.getItem('refresh')}
     console.log('get new access token')
-     await fetch('http://localhost:8000/api/token/refresh/', {
+    await fetch('http://localhost:8000/api/token/refresh/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(refresh_token)
-}).then(res => res.json())
+    }).then(res => res.json())
       .then(json => {
           localStorage.removeItem('token');
         localStorage.setItem('token', json.access)
@@ -133,7 +92,24 @@ function sleep(milliseconds) {
       }).catch((err) => {
       console.log('htis error on access token')
       console.error(err)
-    })}
+    })
+  }
+
+  const Tasks = async () => {
+    if (logged_in) {
+        const dateNow = new Date();
+        const time = dateNow.getTime()
+        console.log(time)
+        const exp = decodedToken.exp
+        const exp_same_unit_as_time = exp * 1000
+        console.log(exp_same_unit_as_time)
+        // let access_token_fine = false
+        // exp * 1000 < time
+
+        if(exp_same_unit_as_time < time){
+            console.log('expired chjanged')
+            await getNewAccessToken();
+      }
     else{
             console.log('not expired hoorayt')
         }
@@ -141,7 +117,7 @@ function sleep(milliseconds) {
     const access_token = 'Bearer ' + localStorage.getItem('token')
 
 
-      fetch("http://localhost:8000/api/tasks/", {
+      await fetch("http://localhost:8000/api/tasks/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
